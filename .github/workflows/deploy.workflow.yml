@@ -1,0 +1,68 @@
+name: Deploy Nextjs/Nextra to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+## Allow GITHUB_TOKEN access to deploy to pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+## Control concurrent builds, with only one build at a time
+## Allow the build to finish by not cancelling in progress
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      ## Setup NodeJs/Pnpm
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      ## Setup NodeJs/Pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Nexjt/Nextra
+        run: |
+          pnpm build
+          touch out/.nojekyll
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./out
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
