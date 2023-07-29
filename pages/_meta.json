@@ -1,5 +1,10 @@
 {
   "index": "Introduction",
+  "types": "Types",
+  "advanced-types": "Advanced Types",
+  "design-patterns": "Design Patterns",
   "concurrency": "Concurrency",
-  "design-patterns": "Design Patterns"
+  "testing": "Testing",
+  "best-practices": "Idioms / Best Practices",
+  "projects": "Projects"
 }
