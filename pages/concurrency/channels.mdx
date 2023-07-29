@@ -13,6 +13,14 @@ Create a new channel with the make(chan interface{})
 ch := make(chan string)
 // buffered channel
 ch := make(chan string, 2)
+
+type MyType struct {
+	myValue string
+}
+
+func (m *MyType) String() string {
+	return ""
+}
 ```
 
 Send value into the channel
@@ -29,23 +37,25 @@ fmt.Println(<-ch)
 ## Behaviors
 
 Type types of channels:
-- Buffered
-- Unbuffered (default)
+
+* Buffered
+* Unbuffered (default)
 
 
 Unbuffered Channels (Default Behavior):
-* Channel send (chan<-) & receive (<-chan) operations are blocking until both sender & receiver are ready (Synchronous communication).
-  - Code execution will stop until the send or receive is successfully completed.
-  - The definition of completion depends on the setup of the channel.
-  - Unbuffered channels will block the goroutine when its empty and waiting to be filled.
+
+* Channel send (`chan<-`) & receive (`<-chan`) operations are blocking until both sender & receiver are ready (Synchronous communication).
+  * Code execution will stop until the send or receive is successfully completed.
+  * The definition of completion depends on the setup of the channel.
+  * Unbuffered channels will block the goroutine when its empty and waiting to be filled.
 
 Buffered Channels:
-* Channel send (chan<-) & receive (<-chan) operations are non-blocking until the specified capacity is reached (Asynchronous Communication)
-  - Up until capacity, the sender can put data onto the channel without blocking.
-  - If attempt to send more than the channel capacity, the send (chan<-) operation will block until values are received (<-chan) from the channel.
-  - Buffered channels will block the goroutine when:
-    - Empty and waiting to be filled with data
-    - At full-capacity and attempt to send (chan<-) data prior to receiver picks message off of the channel
+* Channel send (`chan<-`) & receive (`<-chan`) operations are non-blocking until the specified capacity is reached (Asynchronous Communication)
+  * Up until capacity, the sender can put data onto the channel without blocking.
+  * If attempt to send more than the channel capacity, the send (`chan<-`) operation will block until values are received (`<-chan`) from the channel.
+  * Buffered channels will block the goroutine when:
+    * Empty and waiting to be filled with data
+    * At full-capacity and attempt to send (`chan<-`) data prior to receiver picks message off of the channel
 
 
 ## Range and Close
@@ -54,7 +64,7 @@ A sender can close a channel, to indicate no more messages will be sent. (Only t
 
 Receivers can check whether a channel has been closed and that there are no more values to be received by
 
-```go
+```go copy
 v, ok := <-ch
 if !ok {
   fmt.Println("channel is closed")
@@ -80,14 +90,14 @@ for i := range ch {
 
 ## Channel Directions
 
-Whan passing channels to goroutines & functions, can specify to the compiler if a channel is Bi-directional or uni-directional.
+Whan passing channels to goroutines & functions, can specify to the compiler if a channel is Bi*directional or uni*directional.
 
-Best practice to specify if a channel is send or receive only to increase type-safety
+Best practice to specify if a channel is send or receive only to increase type*safety
 
 ```go
 func method(ch chan string) {} // Can send or receive values
-func sendOnly(ch <-chan string){} // Send-Only channel
-func receiveOnly(ch chan<- string){} // Receive-Only channel
+func sendOnly(ch <*chan string){} // Send*Only channel
+func receiveOnly(ch chan<* string){} // Receive*Only channel
 ```
 
 ## Select

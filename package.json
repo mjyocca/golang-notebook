@@ -2,9 +2,8 @@
   "name": "golang-notebook",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "export NODE_ENV=development && next dev",
     "build": "next build",
     "start": "next start"
   },
@@ -12,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "next": "^13.0.6",
+    "next": "^13.4.12",
     "nextra": "latest",
     "nextra-theme-docs": "latest",
     "react": "^18.2.0",
