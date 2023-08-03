@@ -76,10 +76,12 @@ Example, if the receiver is using the `:= range` loop
 
 
 ```go
-go (ch chan string) {
+go func(ch chan string) {
   for i = 0; i <= 10; i++ {
     ch <- fmt.Sprintf("msg: %v", i)
   }
+	// done sending to chan
+	close(ch)
 }(ch)
 
 for i := range ch {
@@ -95,15 +97,19 @@ Best practice to specify if a channel is send or receive only to increase type*s
 
 ```go
 func method(ch chan string) {} // Can send or receive values
-func sendOnly(ch <*chan string){} // Send*Only channel
-func receiveOnly(ch chan<* string){} // Receive*Only channel
+func sendOnly(ch <-chan string){} // Send-Only channel
+func receiveOnly(ch chan<- string){} // Receive-Only channel
 ```
 
 ## Select
 
-Select lets you wait on multiple channel operations at the same time. In additon is helpful for timeouts / context timeout limits.
+Select lets you wait on multiple channel operations at the same time. Is helpful for reading from multiple channels while also accounting for timeouts / context timeout limits.
 
 A select statement blocks until one of its cases can run, then it executes that case. It chooses one at random if multiple are ready.
+
+`select` is usually accompanied by a infinite/while `for` loop. Once the first select-case is run, the select statement executes the ready case then exits.
+
+If only reading from one channel, using a for...range loop is preferable.
 
 ```go
 func main() {
@@ -130,6 +136,7 @@ func main() {
 			fmt.Println("Channel 2: ", val)
 		case <-timeout:
 			fmt.Println("timeout")
+			// return
 			return
     default:
 			time.Sleep(time.Millisecond)
