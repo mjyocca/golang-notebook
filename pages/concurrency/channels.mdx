@@ -40,14 +40,15 @@ Type types of channels:
 * Unbuffered (default)
 
 
-Unbuffered Channels (Default Behavior):
+### Unbuffered Channels (default)
 
 * Channel send (`chan<-`) & receive (`<-chan`) operations are blocking until both sender & receiver are ready (Synchronous communication).
   * Code execution will stop until the send or receive is successfully completed.
   * The definition of completion depends on the setup of the channel.
   * Unbuffered channels will block the goroutine when its empty and waiting to be filled.
 
-Buffered Channels:
+### Buffered Channels
+
 * Channel send (`chan<-`) & receive (`<-chan`) operations are non-blocking until the specified capacity is reached (Asynchronous Communication)
   * Up until capacity, the sender can put data onto the channel without blocking.
   * If attempt to send more than the channel capacity, the send (`chan<-`) operation will block until values are received (`<-chan`) from the channel.
@@ -102,7 +103,7 @@ func receiveOnly(ch chan<* string){} // Receive*Only channel
 
 Select lets you wait on multiple channel operations at the same time. In additon is helpful for timeouts / context timeout limits.
 
-A select blocks until one of its cases can run, then it executes that case. It chooses one at random if multiple are ready.
+A select statement blocks until one of its cases can run, then it executes that case. It chooses one at random if multiple are ready.
 
 ```go
 func main() {

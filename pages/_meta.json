@@ -1,10 +1,11 @@
 {
   "index": "Introduction",
+  "basics": "Basics",
   "types": "Types",
   "advanced-types": "Advanced Types",
   "design-patterns": "Design Patterns",
   "concurrency": "Concurrency",
   "testing": "Testing",
-  "best-practices": "Idioms / Best Practices",
+  "best-practices": "Idiomatic Go / Best Practices",
   "projects": "Projects"
 }

@@ -1,0 +1,42 @@
+
+## Naming
+
+#### Variable Naming
+
+## Don't Panic
+
+Instead of calling `panic()` in a function, return an error as the second value.
+
+```go
+func marshalData(val interface{}) ([]byte, error) {
+  data, err := json.UnMarshal()
+  if err != nil {
+    return nil, err
+  }
+  // ...
+}
+```
+
+#### If you must panic, prefix your function name with `must`
+
+```go
+func mustMarshalData(val interface{}) ([]byte) {
+  data, err := json.UnMarshal()
+  if err != nil {
+    panic(err)
+  }
+  // ...
+}
+```
+
+## Avoid `func init()`
+
+## Accept *Interfaces*; return *Structs*
+
+## Limit storing data in context.Context
+
+Limit use of `context.WithValue(...)` to one of the following purposes:
+* Session ID's
+* Tracing / Spans
+* Telemetry
+* Logging

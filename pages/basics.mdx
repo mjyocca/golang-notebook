@@ -1,0 +1,415 @@
+
+## Packages
+
+All go programs are made up of packages.
+
+### main
+
+Go application entrypoint lives in a special package called, `main`.
+
+The `main` package will allow your go application to compile to an executable and not a library.
+
+Go/Golang code resides within a package where all files in the same folder and disc are located.
+
+**Project Example**:
+
+import { FileTree } from 'nextra/components'
+
+<FileTree>
+  <FileTree.Folder name="application" defaultOpen>
+    <FileTree.Folder name="package" defaultOpen><FileTree.File name="package.go" /></FileTree.Folder>
+    <FileTree.File name="main.go" />
+    <FileTree.File name="config.go" />
+    <FileTree.File name="server.go" />
+  </FileTree.Folder>
+</FileTree>
+
+Files: **main.go**, **config.go**, **server.go** are all in the `main` package. Whereas **package/package.go** is in a separate library package.
+
+```go filename="main.go"
+package main
+
+func main() {
+  fmt.Println("Hello World!")
+}
+```
+
+### exported
+
+Uppercase / Capital letter denotes a variable or function as public or `Exported`.
+
+If a function, variable, or struct field property is lowercase, it cannot be accessible outside the package.
+
+```go filename="server/server.go"
+package server
+
+// Unexported / private
+var allowList []string{} = ["..."]
+
+func getAllowList() []string {
+	return allowList
+}
+
+// Exported / public
+func NewServer() *Server {
+	return &Server{}
+}
+```
+
+```go filename="main.go"
+package main
+
+import "server"
+
+func main() {
+	// can't access allowList
+	// server.allowList
+
+	s := server.NewServer()
+}
+```
+
+
+## Variables
+
+### var
+
+`var` scope can be at the package or function level
+
+```go
+var myValue string = "Hello"
+```
+
+`var` can be declared as a list of variables.
+```go
+var a, b, c string = "foo", "bar", "baz"
+var e, f, g = false, 2, "hi"
+```
+
+If `var` declaration includes initializers, the type can be omitted.
+
+### `:=`
+
+Shorthand syntax for declaration and initializing a variable: `:=`
+
+Only available within the scope of a function.
+
+```go
+func myFunc() {
+	s := 0
+	k := "test"
+	v := true
+
+	a, b, c := 1, 2, 3
+}
+```
+
+## Functions
+
+Similar to other programmatic languages.
+
+Denoted by the keyword `func`
+
+Function can take 0 or more arguments.
+
+```go
+func add(x int, y int) int {
+	return x + y
+}
+
+// or
+
+func add(x, y int) int {
+	return x + y
+}
+```
+
+### Multiple Return values
+
+Functions in go can return multiple values of varying types.
+
+Common pattern is to return the result and a possible error, `(interface{}, error)`
+
+```go
+func readFile(path string) ([]byte, error) {
+	// ...
+}
+```
+
+## Control Flow
+
+### for...loops
+
+```go
+package main
+
+func main() {
+  numbers := []int{1,2,4,5,6}
+  for i := 0; i < len(numbers); i++ {
+    // access index & elem
+    fmt.Println("pos: ", i)
+    fmt.Println("elem: ", numbers[i])
+  }
+}
+```
+
+Exit a for...loop early with `break`.
+
+```go /break/
+package main
+
+func main() {
+  numbers := []int{1,2,4,5,6}
+  for i := 0; i < len(numbers); i++ {
+    if i < 1 {
+      break
+    }
+    // access index & elem
+    fmt.Println("pos: ", i)
+    fmt.Println("elem: ", numbers[i])
+  }
+}
+```
+
+Can skip an iteration with `continue`.
+
+```go /continue/
+package main
+
+func main() {
+  numbers := []int{1,2,4,5,6}
+  for i := 0; i < len(numbers); i++ {
+    if i < 1 {
+      continue
+    }
+    // access index & elem
+    fmt.Println("pos: ", i)
+    fmt.Println("elem: ", numbers[i])
+  }
+}
+```
+
+### for...range
+
+```go
+package main
+
+func main() {
+  people := map[string]int{"Michael": 10, "Kathy": 20, "Randy": 30, "Mark": 40, "Kelley": 50}
+  for key, value := range people {
+    fmt.Println("Key: ", key, " Value: ", value)
+  }
+}
+```
+
+
+### `for` (While)
+
+Go's for-while loop is just `for` with a defined condition.
+
+```go
+i := 1
+for i < 10 {
+  n++
+}
+fmt.Println(i)
+```
+
+
+### `for` (Infinite)
+
+`for` with no condition will run indefinitely.
+
+```go
+i := 0
+for {
+  n++
+}
+// never reached
+fmt.Println(i)
+```
+
+Alternatively can write as a for...loop without a condition
+
+```go
+for i := 0; ; i++ {
+  // processing
+}
+// never reached
+fmt.Println(i)
+```
+
+
+### Switch
+
+As with other programing languages, Go has a `switch` statement. Shorter `if - else` statements.
+
+```go
+package main
+
+import (
+	"fmt"
+	"runtime"
+)
+
+func main() {
+  switch os := runtime.GOOS; os {
+	case "darwin":
+		fmt.Println("OS X.")
+	case "linux":
+		fmt.Println("Linux.")
+	default:
+		// freebsd, openbsd,
+		// plan9, windows...
+		fmt.Printf("%s.\n", os)
+  }
+}
+```
+
+### Defer
+
+`defer` statement delays the execution of a function until the surrounding function returns. The `defer()` call's arguments are evaluated immediately.
+
+Calls to `defer()` are pushed onto a LIFO stack.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+	myFunc()
+}
+
+func myFunc() {
+	defer func() {
+		fmt.Println("Last")
+	}()
+	defer func() {
+		fmt.Println("Second")
+	}()
+	fmt.Println("First")
+}
+// Prints: "First", "Second", "Last"
+```
+
+### Labels
+
+Complex scenarios can use *optional* labels for `break`, `continue`. Labels are **required** for `goto` statements.
+
+#### break
+
+`break` statement terminates execution of the direct/innermost `for`, `switch` or `select` statement within the same function.
+
+If using a label with `break` statement, must be that of an enclosing: `for`, `switch`, `select` statement, and will terminate the corresponding statement.
+
+```go {8,12} showLineNumbers
+package main
+
+import "fmt"
+
+func main() {
+	powerLevel := 0
+
+loop:
+	for {
+		powerLevel++
+		if powerLevel > 9000 {
+			break loop
+		}
+	}
+
+	fmt.Println("Over 9000!")
+}
+```
+
+`break` statement on line 30 for label: `loop`, will terminate the enclosing outermost `for` loop.
+
+Whereas normally without a label, `break` would only terminate it's parent `for`, `switch` or `select` statements. In this case, the `select` would only be terminated.
+
+```go {24,25,30} showLineNumbers
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
+
+func main() {
+
+	ch := make(chan string)
+	done := make(chan struct{})
+
+	go func(ch chan string) {
+		time.Sleep(time.Duration(rand.Intn(1e3)) * time.Millisecond)
+		ch <- "message 2"
+	}(ch)
+
+	go func(ch chan struct{}) {
+		time.Sleep(time.Duration(2 * time.Second))
+		ch <- struct{}{}
+	}(done)
+
+loop:
+	for {
+		select {
+		case val := <-ch:
+			fmt.Println("Received from channel: ", val)
+		case <-done:
+			break loop
+		}
+	}
+
+	fmt.Println("Done!")
+}
+```
+
+#### continue
+
+If using a label with `continue`, must be that of an enclosing `for` statement in which execution advances to next iteration.
+
+```go {7,10} showLineNumbers
+package main
+
+import "fmt"
+
+func main() {
+
+loop:
+	for i := 0; i < 10; i++ {
+		if i == 5 {
+			continue loop
+		}
+		fmt.Println(i)
+	}
+}
+// Prints: {0,1,2,3,4,6,7,8,9}
+// {5} was skipped
+```
+
+#### goto
+
+`goto` transfers control to the statement with the corresponding label within the same function call.
+
+**`goto` requires the use of label.**
+
+```go {11,15} showLineNumbers
+package main
+
+import "fmt"
+
+func main() {
+	powerLevel := 0
+
+	for {
+		powerLevel++
+		if powerLevel > 9000 {
+			goto theEnd
+		}
+	}
+
+theEnd:
+	fmt.Println("Over 9000!")
+}
+```
