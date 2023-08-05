@@ -1,69 +1,78 @@
 ## Description
 
+`receive <- [channel] <- send`
+
 Channels allow for sharing data between goroutines in a seamless fashion without passing data between functions directly.
+
+*Channels can also be thought of a **FIFO** (First-In-First-Out) queue.*
 
 ## Use
 
-Create a new channel with the make(chan interface{})
+### Make a Channel
+
+Create a new channel with the `make(chan interface{})`.
+
+Example: `make(chan struct{})`
+
+*Can also create a channel of channels with* `make(chan chan struct{})`
 
 ```go
 // unbuffered channel
 ch := make(chan string)
 // buffered channel
 ch := make(chan string, 2)
-
-type MyType struct {
-	myValue string
-}
-
-func (m *MyType) String() string {
-	return ""
-}
 ```
+
+### Send Data `chan<-`
 
 Send value into the channel
 ```go
+// <- arrow points to the chan as data flows into it
 ch <- "value"
 ```
 
-Receive calue from channel
+### Receive Data `<-chan`
+
+Receive value from channel
 ```go
 // reads value from channel
+// arrow <- points away from the channel
 fmt.Println(<-ch)
+// assign value read from the channel to a variable
+v := <-ch
 ```
 
 ## Behaviors
 
-Type types of channels:
+Types of channels:
 
-* Buffered
-* Unbuffered (default)
-
+* Unbuffered (Synchronous)
+* Buffered (Asynchronous)
 
 ### Unbuffered Channels (default)
 
 * Channel send (`chan<-`) & receive (`<-chan`) operations are blocking until both sender & receiver are ready (Synchronous communication).
-  * Code execution will stop until the send or receive is successfully completed.
-  * The definition of completion depends on the setup of the channel.
-  * Unbuffered channels will block the goroutine when its empty and waiting to be filled.
+	- Code execution will stop until the send & receive have successfully completed.
+	- Unbuffered or zero capacity channels, require both **sender** and **receiver** to be present to successfully complete the operation.
 
 ### Buffered Channels
 
-* Channel send (`chan<-`) & receive (`<-chan`) operations are non-blocking until the specified capacity is reached (Asynchronous Communication)
-  * Up until capacity, the sender can put data onto the channel without blocking.
-  * If attempt to send more than the channel capacity, the send (`chan<-`) operation will block until values are received (`<-chan`) from the channel.
-  * Buffered channels will block the goroutine when:
-    * Empty and waiting to be filled with data
-    * At full-capacity and attempt to send (`chan<-`) data prior to receiver picks message off of the channel
-
+* Channel send (`chan<-`) & receive (`<-chan`) operations are non-blocking until the specified capacity is reached (Asynchronous Communication).
+	- Buffered channels have a predefined capacity `make(chan int, 10)`.
+	- Up until capacity, the sender can put data onto the channel without blocking.
+	- Once a receiver is ready, the value is immediately popped off the queue.
+	- Buffered channels can block the goroutine when:
+		- If empty, the receiver is blocked until the sender sends a message.
+		- If the Buffered channel reaches the predefined capacity and send additional values, the send (`chan<-`) operation will block until values are received (`<-chan`) from the channel.
 
 ## Range and Close
 
 A sender can close a channel, to indicate no more messages will be sent. (Only the sender should close the channel)
 
-Receivers can check whether a channel has been closed and that there are no more values to be received by
+Receivers can check whether a channel has been closed and that there are no more values to be received by checking the second return value when performing a read operation from the channel.
 
 ```go copy
+// interface{}, bool
 v, ok := <-ch
 if !ok {
   fmt.Println("channel is closed")
@@ -105,7 +114,9 @@ func receiveOnly(ch chan<- string){} // Receive-Only channel
 
 Select lets you wait on multiple channel operations at the same time. Is helpful for reading from multiple channels while also accounting for timeouts / context timeout limits.
 
-A select statement blocks until one of its cases can run, then it executes that case. It chooses one at random if multiple are ready.
+A select statement blocks until one of the provided cases are ready, then it executes that case. It chooses one at random if multiple are ready.
+
+Optionally, a default case can be provided to the select statement to continuously execute code if no other cases are ready.
 
 `select` is usually accompanied by a infinite/while `for` loop. Once the first select-case is run, the select statement executes the ready case then exits.
 
