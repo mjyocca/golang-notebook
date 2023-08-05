@@ -100,9 +100,9 @@ for i := range ch {
 
 ## Channel Directions
 
-Whan passing channels to goroutines & functions, can specify to the compiler if a channel is Bi*directional or uni*directional.
+When passing channels to goroutines & functions, you can specify to the compiler if a channel is Bi*directional or uni*directional.
 
-Best practice to specify if a channel is send or receive only to increase type*safety
+Best practice is to specify if a channel can only send or receive receive messages.
 
 ```go
 func method(ch chan string) {} // Can send or receive values
