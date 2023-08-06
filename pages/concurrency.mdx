@@ -73,3 +73,24 @@ func main() {
 ```
 
 *NOTE: Executing `time.Sleep(t)` to block the main thread is not a production ready pattern. Channels/WaitGroups are though.*
+
+
+## Detect Race Conditions
+
+### What is a Race Condition
+
+When two or more *goroutines* have conflicting read and write operations on shared resoruces without any locking/ordering mechanisms.
+
+Detecting race conditions is not explicit since the race condition depends on the scheduling of goroutines. Goroutines are non-deterministic, can't determine the order in data is read and written to.
+
+Attempting to write to particular data structures such as a map `map[interface{}]interface{}`, **panics** when reads/writes happen concurrently.
+
+### `-race` Flag
+
+Go toolchain has a built-in race detector, `-race` flag.
+
+Prints out stack traces and any data that read/write that can conflict with each other when a race condition is found.
+
+### Avoid Race Conditions
+
+- []
