@@ -10,7 +10,7 @@ var wg sync.WaitGroup
 wg := sync.WaitGroup{}
 ```
 
-*Method Receivers*
+*Most commonly used Struct Method Receivers*
 
 ```go
 // Add adds delta, to the WaitGroup counter.
@@ -25,7 +25,8 @@ func (wg *WaitGroup) Wait() {}
 
 
 #### Basic
-```go
+
+```go {11,19,26} showLineNumbers
 package main
 
 import (
@@ -62,7 +63,7 @@ func main() {
 
 #### Dynamic
 
-```go
+```go {11,34,40} showLineNumbers
 package main
 
 import (
@@ -134,7 +135,7 @@ var m sync.Map
 m := sync.Map{}
 ```
 
-*Method Receivers*
+*Most commonly used Struct Method Receivers*
 
 ```go
 // returns nil, and false ok val if value is not found
@@ -224,3 +225,92 @@ func main() {
 
 
 ## sync.Mutex
+
+Lock mechanism to protect resources against unsafe concurrency reads and writes.
+
+The zero value of a Mutex is initialized and ready for use.
+
+The Mutex is initialized in an "Unlocked" state.
+
+```go
+var m sync.Mutex
+// or
+m := sync.Mutex{}
+```
+
+*Most commonly used Struct Method Receivers*
+
+```go
+func (m *Mutex) Lock()
+func (m *Mutex) Unlock()
+```
+
+### Example
+
+```go {9-12,28-30} showLineNumbers
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"sync"
+)
+
+type Result struct {
+	values     map[string]string
+	valuesLock sync.Mutex
+}
+
+func returnType(url string, wg *sync.WaitGroup, result *Result) {
+	// decrement the waitgroup counter
+	defer wg.Done()
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		fmt.Printf("\n%s -> error: %s\n", url, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	contentType := resp.Header.Get("content-type")
+
+	defer result.valuesLock.Unlock()
+	result.valuesLock.Lock()
+	result.values[url] = contentType
+}
+
+func main() {
+
+	wg := sync.WaitGroup{}
+	// new concurrent safe map
+	result := &Result{
+		values: map[string]string{},
+	}
+
+	urls := []string{
+		"https://golang.org",
+		"https://api.github.com",
+		"https://httpbin.org/xml",
+	}
+
+	// increment counter by len of urls
+	wg.Add(len(urls))
+	// goroutine for each request
+	for _, url := range urls {
+		go returnType(url, &wg, result)
+	}
+	// wait for all goroutines to complete
+	wg.Wait()
+
+	for url, ctype := range result.values {
+		fmt.Println("Url: ", url, " content-type: ", ctype)
+	}
+
+	fmt.Println("Done!")
+}
+```
+
+### Additional Resources
+* [Google Open Source](https://go.googlesource.com/go/+/refs/tags/go1.20.7/src/sync/mutex.go)
+* [GitHub Source](https://github.com/golang/go/blob/master/src/sync/mutex.go)
