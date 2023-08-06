@@ -1,2 +1,75 @@
 
-[to-do]
+## Concurrency vs. Parallelism
+
+Parallelism:
+* Tasks that execute simultaneoulsy and independently from other tasks.
+* Requires multiple CPUs.
+
+Concurrency:
+* Tasks that execute in any given order in a non-deterministic fashion.
+* Achieves multiple tasks by swapping between tasks quickly.
+
+## Goroutines
+
+*Pillar of Concurrency in go.*
+
+### Definition
+
+Independent functions that execute on a set of threads (*"lightweight threads"*) managed by the **Go Runtime**.
+
+The **Go Runtime** schedules goroutines executing them in an efficient way on top of OS threads. The runtime also determines when these goroutines are run.
+
+Can spin up several of thousands of **goroutines** on the same machine.
+
+### Execute a goroutine
+
+Any function can be executed in a separate goroutine.
+
+`go f(x)` where f function and x argument are evaluated in the separate goroutine.
+
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func add(x, y int) {
+  fmt.Println(x + y)
+}
+
+func main() {
+  go add(1, 1)
+}
+```
+
+*This example executes the `add(x, y)` in a separate goroutine, sharing the same memory address as the main goroutine.*
+
+*If you were to execute this program, you would not see the computed value of `x + y` to the console with the `fmt.Println` statement.*
+
+After scheduling the `add(x, y)` function to run in a separate goroutine, the **main goroutine** has no other instructions or processes that are blocking so it exits and cleanups any associated resources including the `add(x, y)` goroutine.
+
+If were to block the **main goroutine** with a `time.Sleep(t)` function call after scheduling the `add(x, y)`, it would allow the scheduled goroutine enough time to execute.
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func add(x, y int) {
+	fmt.Println(x + y)
+}
+
+func main() {
+	go add(1, 1)
+	time.Sleep(1 * time.Second)
+}
+// Prints: 2
+```
+
+*NOTE: Executing `time.Sleep(t)` to block the main thread is not a production ready pattern. Channels/WaitGroups are though.*

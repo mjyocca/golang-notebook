@@ -1,0 +1,125 @@
+## sync.WaitGroup
+
+Uses an internal lock and counter to wait for **goroutines** to finish.
+
+Zero or default value of the **WaitGroup** is ready to be used.
+
+```go
+var wg sync.WaitGroup
+// or
+wg := sync.WaitGroup{}
+```
+
+*Method Receivers*
+
+```go
+// Add adds delta, to the WaitGroup counter.
+func (wg *WaitGroup) Add(delta int) {}
+// Done decrements the WaitGroup counter by one.
+func (wg *WaitGroup) Done() {}
+// Wait blocks until the WaitGroup counter is zero.
+func (wg *WaitGroup) Wait() {}
+```
+
+### Examples
+
+
+#### Basic
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func hello(wg *sync.WaitGroup) {
+	// Before hello exits, defer will run
+	// and decrement the waitgroup internal counter
+	defer wg.Done()
+	// work/processing....
+	fmt.Println("Hello World")
+}
+
+func main() {
+	wg := sync.WaitGroup{}
+	// increment internal counter of the waitgroup to 1 goroutine
+	wg.Add(1)
+	// execute hello fn as goroutine
+	// pass waitgroup as pointer,
+	// otherwise func hello() would receive wg as value
+	// with a new internal counter.
+	go hello(&wg)
+	// block until inner counter of waitgroup has reached 0
+	wg.Wait()
+	// continue processing...
+	fmt.Println("goodbye")
+}
+// Prints:
+// - goroutine: "Hello World"
+// - (main): "goodbye"
+```
+
+#### Dynamic
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"sync"
+)
+
+func returnType(url string, wg *sync.WaitGroup) {
+	// decrement the waitgroup counter
+	defer wg.Done()
+	resp, err := http.Get(url)
+
+	if err != nil {
+		fmt.Printf("\n%s -> error: %s\n", url, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	contentType := resp.Header.Get("content-type")
+
+	fmt.Printf("url: %s, content-type: %s\n", url, contentType)
+}
+
+func main() {
+	wg := sync.WaitGroup{}
+
+	urls := []string{
+		"https://golang.org",
+		"https://api.github.com",
+		"https://httpbin.org/xml",
+	}
+	// increment counter by len of urls
+	wg.Add(len(urls))
+	// goroutine for each request
+	for _, url := range urls {
+		go returnType(url, &wg)
+	}
+	// wait for all goroutines to complete
+	wg.Wait()
+
+	fmt.Println("Done!")
+}
+```
+Output:
+```bash
+url: https://api.github.com, content-type: application/json; charset=utf-8
+url: https://golang.org, content-type: text/html; charset=utf-8
+url: https://httpbin.org/xml, content-type: application/xml
+Done!
+```
+
+### Additional Resources
+
+* [Google Open Source](https://go.googlesource.com/go/+/refs/tags/go1.20.7/src/sync/waitgroup.go)
+* [GitHub Source](https://github.com/golang/go/blob/master/src/sync/waitgroup.go)
+
+## sync.Map
+
+## sync.Mutex
