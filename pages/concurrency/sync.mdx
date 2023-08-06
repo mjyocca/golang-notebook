@@ -257,8 +257,8 @@ import (
 )
 
 type Result struct {
-	values     map[string]string
-	valuesLock sync.Mutex
+	valuesMu sync.Mutex
+	values   map[string]string
 }
 
 func returnType(url string, wg *sync.WaitGroup, result *Result) {
@@ -275,17 +275,16 @@ func returnType(url string, wg *sync.WaitGroup, result *Result) {
 
 	contentType := resp.Header.Get("content-type")
 
-	defer result.valuesLock.Unlock()
-	result.valuesLock.Lock()
+	defer result.valuesMu.Unlock()
+	result.valuesMu.Lock()
 	result.values[url] = contentType
 }
 
 func main() {
-
 	wg := sync.WaitGroup{}
 	// new concurrent safe map
 	result := &Result{
-		values: map[string]string{},
+		values: map[string]string{}, // or make(map[string]string)
 	}
 
 	urls := []string{
@@ -306,7 +305,6 @@ func main() {
 	for url, ctype := range result.values {
 		fmt.Println("Url: ", url, " content-type: ", ctype)
 	}
-
 	fmt.Println("Done!")
 }
 ```
