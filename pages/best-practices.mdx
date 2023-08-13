@@ -1,7 +1,176 @@
+## Project Structure
+
+[Project Layout Repository](https://github.com/golang-standards/project-layout)
+
+* `cmd/*`: Main applications for this project. One or more entrypoints.
+* `pkg/*`: Library code that's ok for use by external applications and other projects.
+* `internal/*`: Code you do **not** wish others importing into their applications or libraries.
+
+Additional
+* `api/`: OpenAPI, Swagger, JSON schema files, protocol definition files.
+* `build/`: Packaging and continuous integration. Examples: Docker, Cloud AMI, CI configurations and scripts.
+* `configs/`: Configuration file templates or default configs. Example: `consult-templates`
+* `docs/`: Design, user documents, diagrams, godoc generated documentation.
+* `examples/`: Examples on how to use the project's application or public libraries.
+* `web/` or `website/`: Website data, Web assets, server side templates, SPA's
+
+import { FileTree } from 'nextra/components'
+
+<FileTree>
+  <FileTree.Folder name="application" defaultOpen>
+    <FileTree.Folder name="api" />
+    <FileTree.Folder name="build" ></FileTree.Folder>
+    <FileTree.Folder name="cmd" defaultOpen>
+      <FileTree.File name="main.go" />
+    </FileTree.Folder>
+    <FileTree.Folder name="configs" />
+    <FileTree.Folder name="docs" />
+    <FileTree.Folder name="examples" />
+    <FileTree.Folder name="pkg" defaultOpen>
+      <FileTree.Folder name="public-package"></FileTree.Folder>
+    </FileTree.Folder>
+    <FileTree.Folder name="internal" defaultOpen>
+      <FileTree.Folder name="private-package"></FileTree.Folder>
+    </FileTree.Folder>
+    <FileTree.Folder name="website" />
+  </FileTree.Folder>
+</FileTree>
 
 ## Naming
 
-#### Variable Naming
+Short but descriptive
+
+Avoid repitition, prioritize smaller naming conventions that do not cause naming collisions.
+
+### Variable Naming
+
+* Use `camelCase` for variable names, Captialize for exported variables.
+* Single letter names for indexes: `i, j, k, ...`
+* For acronyms in names, use all capitals.
+* For collections, slices, arrays use repeated letters to represent, single letters in loop.
+* Avoid repeating package name in variable name.
+
+### Function Naming
+
+Omit from function names:
+* The type of a method's receiver
+* Whether an input or output is a pointer
+* Inputs and outputs types when there is no naming collision
+* Avoid `Get` or `Set` naming
+
+#### Examples
+
+Repeating the name of the package
+```go
+// Bad:
+package yamlconfig
+
+func ParseYAMLConfig(input string) (*Config, error)
+
+// Good:
+package yamlconfig
+
+func Parse(input string) (*Config, error)
+```
+
+Method recievers, omit the name of the struct the reciever is for.
+```go
+// Bad:
+func (c *Config) WriteConfigTo(w io.Writer) (int64, error)
+// Good:
+func (c *Config) WriteTo(w io.Writer) (int64, error)
+```
+
+Avoid repeating the names of variables passed as parameters and types of return values
+```go
+// Bad:
+func TansformJSONToConfig(json string) *Config
+// Good:
+func Transform(json string) *Config
+```
+
+#### Noun and Verb naming
+
+Functions that:
+* Return a value, give **noun-like** names.
+* Do something, **verb-like** names.
+
+Noun-like: Returning a value
+```go
+// Bad: avoid the `Get` prefix
+func (c *Config) GetName() string
+// Good:
+func (c *Config) Name() string
+```
+
+Verb-like: Doing an action
+```go
+// Bad: not a verb
+func (c *Config) Detail(w io.Writer) (int64, error)
+// Good:
+func (c *Config) WriteDetail(w io.Writer) (int64, error)
+
+// If naming collision, Identical functions that differ only by the types involved
+// can include the name of the type at the end of the name
+// Good:
+func ParseInt(input string) (int, error)
+func ParseInt64(input string) (int64, error)
+func AppendInt(buf []byte, value int) []byte
+func AppendInt64(buf []byte, value int64) []byte
+
+// If there is a clear “primary” version, the type can be omitted from the name for that version
+// Good:
+func (c *Config) Marshal() ([]byte, error)
+func (c *Config) MarshalText() (string, error)
+```
+
+### Interface Naming (er)
+
+Name interfaces with a verb.
+
+Naming examples: [`Stringer()`, `Storer()`, `Reader()`, `Writer()`]
+
+Real examples:
+* io.Writer
+* io.Reader
+
+## Grouping
+
+### Variable Grouping
+
+Group similar variable declarations of constants, variables, and type constants together.
+
+```go
+var (
+  a = 1
+  b = 2
+)
+```
+
+```go
+const (
+  blue = "blue"
+  red = "red"
+)
+```
+
+### Function Grouping
+
+* Place exported functions closer to top of the file, while unexported / private functions towards the bottom.
+* Place similar functions together, especially those that serve similar purposes but vary by varying parameters and return types.
+
+### Mutex Grouping
+
+* When declaring mutex struct field, group next to the value the mutex is protecting race conditions with
+* Name mutex field with the same name as the protected field with an appended, `Mu`.
+
+```go
+type Cmd struct {
+
+  resultMu sync.Mutex
+  result map[string]interface{}
+}
+```
 
 ## Don't Panic
 
@@ -17,7 +186,7 @@ func marshalData(val interface{}) ([]byte, error) {
 }
 ```
 
-#### If you must panic, prefix your function name with `must`
+### If you must panic, prefix your function name with `must`
 
 ```go
 func mustMarshalData(val interface{}) ([]byte) {
@@ -29,9 +198,16 @@ func mustMarshalData(val interface{}) ([]byte) {
 }
 ```
 
-## Avoid `func init()`
+## Avoid `func init()`, Use `sync.Once`
+
+The `init()` function makes it harder to test and have no control over when this function is called.
+
+Sometimes this special function is used to initialize a shared variable once to implement a singleton.
+
+This same pattern can be accomplished with `sync.Once` method.
 
 ## Accept *Interfaces*; return *Structs*
+
 
 ## Limit storing data in context.Context
 
@@ -40,3 +216,6 @@ Limit use of `context.WithValue(...)` to one of the following purposes:
 * Tracing / Spans
 * Telemetry
 * Logging
+
+
+## [Go Doc Comments](https://go.dev/doc/comment)
