@@ -208,6 +208,106 @@ This same pattern can be accomplished with `sync.Once` method.
 
 ## Accept *Interfaces*; return *Structs*
 
+Let the consumer define the interface it uses and return a struct{}.
+
+`NewUserService` fn accepts argument s of type `UserStorer` interface, and returns a pointer to a `UserService` struct{}
+
+```go filename="db/db.go" showLineNumbers
+package db
+
+import "database/sql"
+
+type Store struct {
+	db *sql.DB
+}
+
+func NewDB() *Store {
+	return &Store{
+		db: &sql.DB{},
+	}
+}
+
+func (s *Store) Insert(item interface{}) error {
+
+	//... to-do
+	return nil
+}
+
+func (s *Store) Get(id string, val interface{}) error {
+
+	//... to-do
+	return nil
+}
+```
+
+```go {5-8,16,26,35} filename="service/service.go" showLineNumbers
+package service
+
+import "context"
+
+type UserStorer interface {
+	Insert(item interface{}) error
+	Get(id string, val interface{}) error
+}
+
+type User struct {
+	ID    string
+	Email string
+}
+
+type UserService struct {
+	store UserStorer
+}
+
+func NewUserService(s UserStorer) *UserService {
+	return &UserService{
+		store: s,
+	}
+}
+
+func (u *UserService) CreateUser(ctx context.Context, user User) error {
+	err := u.store.Insert(user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserService) RetrieveUser(ctx context.Context, id string) (interface{}, error) {
+	var user User
+	err := u.store.Get(id, &user)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+```
+
+```go filename="main.go" showLineNumbers
+package main
+
+import (
+	"context"
+	"fmt"
+	"test/db"
+	"test/service"
+)
+
+func main() {
+	ctx := context.Background()
+	// store injected into user service
+	store := db.NewDB()
+	// user service struct, can now use it's exposed methods
+	useService := service.NewUserService(store)
+
+	user := &service.User{}
+	if err := useService.CreateUser(ctx, user); err != nil {
+		fmt.Println(fmt.Errorf("error creating user: %s", err))
+	}
+
+	fmt.Println(fmt.Printf("User created: %+v", user))
+}
+```
 
 ## Limit storing data in context.Context
 
